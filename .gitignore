@@ -1,0 +1,7 @@
+dist/
+bin/
+build/
+*.log
+*.local
+*.env
+.DS_Store

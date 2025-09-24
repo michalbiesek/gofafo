@@ -1,0 +1,9 @@
+.git
+.github
+.goreleaser.yaml
+.gitignore
+README.md
+*.md
+dist
+bin
+build

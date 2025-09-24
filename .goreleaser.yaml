@@ -1,0 +1,65 @@
+# Minimal GoReleaser config that:
+# - builds multi-arch binaries
+# - creates a GitHub Release
+# - builds & pushes Docker images to GHCR
+
+project_name: dummy-go-app
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: dummy
+    main: ./main.go
+    binary: dummy-go-app
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{- .Os }}_{{ .Arch }}
+    files:
+      - LICENSE*
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+dockers:
+  - id: app
+    use: buildx
+    dockerfile: Dockerfile
+    # Build context is repo root
+    image_templates:
+      - ghcr.io/{{ .RepoOwner }}/{{ .ProjectName }}:{{ .Tag }}
+      - ghcr.io/{{ .RepoOwner }}/{{ .ProjectName }}:latest
+    build_flag_templates:
+      - --platform=linux/amd64,linux/arm64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.revision={{ .Commit }}
+      - --label=org.opencontainers.image.source={{ .GitURL }}
+      - --label=org.opencontainers.image.created={{ .Date }}
+
+release:
+  # Uses the repo you tag in GitHub; no extra config needed.
+  # GoReleaser will create a GitHub Release with archives and checksums.
+  draft: false
+  prerelease: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"

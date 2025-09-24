@@ -9,8 +9,7 @@ builds:
   - id: gofafo
     main: ./main.go
     binary: gofafo
-    env:
-      - CGO_ENABLED=0
+    env: [CGO_ENABLED=0]
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
     ldflags:
@@ -30,10 +29,9 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-# Build per-arch images from the binary, then stitch a multi-arch manifest.
 dockers:
   - id: img_amd64
-    ids: [gofafo]                  # select which build/binary to use
+    ids: [gofafo]        # include the built binary in the context
     use: buildx
     goos: linux
     goarch: amd64
@@ -42,7 +40,6 @@ dockers:
       - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
       - ghcr.io/michalbiesek/gofafo:latest-amd64
     build_flag_templates:
-      - --build-arg=BINARY={{ .Binary }}
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}
@@ -59,7 +56,6 @@ dockers:
       - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
       - ghcr.io/michalbiesek/gofafo:latest-arm64
     build_flag_templates:
-      - --build-arg=BINARY={{ .Binary }}
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}
@@ -86,7 +82,4 @@ release:
 changelog:
   sort: asc
   filters:
-    exclude:
-      - "^docs:"
-      - "^chore:"
-      - "^test:"
+    exclude: ["^docs:", "^chore:", "^test:"]

@@ -31,21 +31,47 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-# Using legacy dockers (works today; prints a deprecation warning)
+# Build per-arch images, then stitch them with a manifest
 dockers:
-  - id: image
+  - id: img_amd64
     use: buildx
+    goos: linux
+    goarch: amd64
     dockerfile: Dockerfile
     image_templates:
-      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}
-      - ghcr.io/michalbiesek/gofafo:latest
+      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
+      - ghcr.io/michalbiesek/gofafo:latest-amd64
     build_flag_templates:
-      - --platform=linux/amd64,linux/arm64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}
       - --label=org.opencontainers.image.source={{ .GitURL }}
       - --label=org.opencontainers.image.created={{ .Date }}
+
+  - id: img_arm64
+    use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile
+    image_templates:
+      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
+      - ghcr.io/michalbiesek/gofafo:latest-arm64
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.revision={{ .Commit }}
+      - --label=org.opencontainers.image.source={{ .GitURL }}
+      - --label=org.opencontainers.image.created={{ .Date }}
+
+docker_manifests:
+  - name_template: ghcr.io/michalbiesek/gofafo:{{ .Tag }}
+    image_templates:
+      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
+      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
+  - name_template: ghcr.io/michalbiesek/gofafo:latest
+    image_templates:
+      - ghcr.io/michalbiesek/gofafo:latest-amd64
+      - ghcr.io/michalbiesek/gofafo:latest-arm64
 
 release:
   github:

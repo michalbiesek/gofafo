@@ -1,5 +1,4 @@
 version: 2
-
 project_name: gofafo
 
 before:
@@ -31,9 +30,10 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-# Build per-arch images, then stitch them with a manifest
+# Build per-arch images from the binary, then stitch a multi-arch manifest.
 dockers:
   - id: img_amd64
+    ids: [gofafo]                  # select which build/binary to use
     use: buildx
     goos: linux
     goarch: amd64
@@ -42,6 +42,7 @@ dockers:
       - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
       - ghcr.io/michalbiesek/gofafo:latest-amd64
     build_flag_templates:
+      - --build-arg=BINARY={{ .Binary }}
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}
@@ -49,6 +50,7 @@ dockers:
       - --label=org.opencontainers.image.created={{ .Date }}
 
   - id: img_arm64
+    ids: [gofafo]
     use: buildx
     goos: linux
     goarch: arm64
@@ -57,6 +59,7 @@ dockers:
       - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
       - ghcr.io/michalbiesek/gofafo:latest-arm64
     build_flag_templates:
+      - --build-arg=BINARY={{ .Binary }}
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}

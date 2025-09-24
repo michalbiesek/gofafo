@@ -1,14 +1,8 @@
-# Multi-arch static build, minimal final image.
-FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS build
-WORKDIR /src
-COPY go.mod ./
-RUN go mod download
-COPY . .
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w" -o /out/app ./main.go
+# Image built from the precompiled binary that GoReleaser provides.
+# No source code (no go.mod) is needed in the context.
 
 FROM scratch
-COPY --from=build /out/app /app
+ARG BINARY
+COPY ${BINARY} /app
 EXPOSE 8080
 ENTRYPOINT ["/app"]

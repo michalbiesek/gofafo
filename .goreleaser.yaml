@@ -1,18 +1,15 @@
-# Minimal GoReleaser config that:
-# - builds multi-arch binaries
-# - creates a GitHub Release
-# - builds & pushes Docker images to GHCR
+version: 2
 
-project_name: dummy-go-app
+project_name: gofafo
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: dummy
+  - id: gofafo
     main: ./main.go
-    binary: dummy-go-app
+    binary: gofafo
     env:
       - CGO_ENABLED=0
     goos: [linux, darwin, windows]
@@ -24,9 +21,9 @@ builds:
       - -X main.date={{.Date}}
 
 archives:
-  - format: tar.gz
-    name_template: >-
-      {{ .ProjectName }}_{{ .Version }}_{{- .Os }}_{{ .Arch }}
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE*
       - README.md
@@ -34,16 +31,16 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-dockers:
+dockers_v2:
   - id: app
-    use: buildx
     dockerfile: Dockerfile
-    # Build context is repo root
     image_templates:
-      - ghcr.io/{{ .RepoOwner }}/{{ .ProjectName }}:{{ .Tag }}
-      - ghcr.io/{{ .RepoOwner }}/{{ .ProjectName }}:latest
+      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}
+      - ghcr.io/michalbiesek/gofafo:latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
     build_flag_templates:
-      - --platform=linux/amd64,linux/arm64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}
@@ -51,8 +48,9 @@ dockers:
       - --label=org.opencontainers.image.created={{ .Date }}
 
 release:
-  # Uses the repo you tag in GitHub; no extra config needed.
-  # GoReleaser will create a GitHub Release with archives and checksums.
+  github:
+    owner: michalbiesek
+    name: gofafo
   draft: false
   prerelease: auto
 

@@ -9,9 +9,8 @@ builds:
   - id: gofafo
     main: ./main.go
     binary: gofafo
-    env:
-      - CGO_ENABLED=0
-    goos: [linux]    # Docker images only target Linux
+    env: [CGO_ENABLED=0]
+    goos: [linux]          # docker images are linux-only
     goarch: [amd64, arm64]
     ldflags:
       - -s -w
@@ -31,7 +30,10 @@ checksum:
   name_template: "checksums.txt"
 
 dockers_v2:
-  - images:
+  - id: app
+    dockerfile: Dockerfile
+    ids: [gofafo]                # ensure the correct build’s binary is in the context
+    images:
       - ghcr.io/michalbiesek/gofafo
     tags:
       - "{{ .Tag }}"
@@ -52,8 +54,3 @@ release:
     name: gofafo
   draft: false
   prerelease: auto
-
-changelog:
-  sort: asc
-  filters:
-    exclude: ["^docs:", "^chore:", "^test:"]

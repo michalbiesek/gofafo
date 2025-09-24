@@ -31,16 +31,16 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-dockers_v2:
-  - id: app
+# Using legacy dockers (works today; prints a deprecation warning)
+dockers:
+  - id: image
+    use: buildx
     dockerfile: Dockerfile
     image_templates:
       - ghcr.io/michalbiesek/gofafo:{{ .Tag }}
       - ghcr.io/michalbiesek/gofafo:latest
-    platforms:
-      - linux/amd64
-      - linux/arm64
     build_flag_templates:
+      - --platform=linux/amd64,linux/arm64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.revision={{ .Commit }}

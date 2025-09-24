@@ -9,8 +9,9 @@ builds:
   - id: gofafo
     main: ./main.go
     binary: gofafo
-    env: [CGO_ENABLED=0]
-    goos: [linux, darwin, windows]
+    env:
+      - CGO_ENABLED=0
+    goos: [linux]    # Docker images only target Linux
     goarch: [amd64, arm64]
     ldflags:
       - -s -w
@@ -29,48 +30,21 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-dockers:
-  - id: img_amd64
-    ids: [gofafo]        # include the built binary in the context
-    use: buildx
-    goos: linux
-    goarch: amd64
-    dockerfile: Dockerfile
-    image_templates:
-      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
-      - ghcr.io/michalbiesek/gofafo:latest-amd64
-    build_flag_templates:
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.revision={{ .Commit }}
-      - --label=org.opencontainers.image.source={{ .GitURL }}
-      - --label=org.opencontainers.image.created={{ .Date }}
-
-  - id: img_arm64
-    ids: [gofafo]
-    use: buildx
-    goos: linux
-    goarch: arm64
-    dockerfile: Dockerfile
-    image_templates:
-      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
-      - ghcr.io/michalbiesek/gofafo:latest-arm64
-    build_flag_templates:
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.revision={{ .Commit }}
-      - --label=org.opencontainers.image.source={{ .GitURL }}
-      - --label=org.opencontainers.image.created={{ .Date }}
-
-docker_manifests:
-  - name_template: ghcr.io/michalbiesek/gofafo:{{ .Tag }}
-    image_templates:
-      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-amd64
-      - ghcr.io/michalbiesek/gofafo:{{ .Tag }}-arm64
-  - name_template: ghcr.io/michalbiesek/gofafo:latest
-    image_templates:
-      - ghcr.io/michalbiesek/gofafo:latest-amd64
-      - ghcr.io/michalbiesek/gofafo:latest-arm64
+dockers_v2:
+  - images:
+      - ghcr.io/michalbiesek/gofafo
+    tags:
+      - "{{ .Tag }}"
+      - "latest"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .Commit }}"
+      org.opencontainers.image.source: "{{ .GitURL }}"
+      org.opencontainers.image.created: "{{ .Date }}"
 
 release:
   github:
